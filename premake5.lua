@@ -1,5 +1,5 @@
 -- premake5.lua
--- Cndr Project
+-- ChotuEditor Project
 
 workspace "ChotuEditor"
 	architecture "x64"
@@ -35,6 +35,9 @@ project "ChotuEditor"
 	includedirs{
 		"%{prj.name}/src"
 	}
+
+	pchheader "Chotupch.h"
+	pchsource "%{prj.name}/src/Chotupch.cpp"
 
 	filter "system:windows"
 		cppdialect "C++17"
