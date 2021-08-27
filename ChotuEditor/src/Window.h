@@ -1,7 +1,8 @@
 #pragma once
-//#include "TextRender.h"
+#include "TextRender.h"
+#include "Event.h"
 
-//class TextRender;
+#include <functional>
 
 //static ID2D1Factory* m_d2dfactory;
 //static IDWriteFactory* m_writeFactory;
@@ -13,6 +14,7 @@ static WCHAR text[] = L"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 
 namespace CE
 {
+	using CallBack = std::function<void(Event& e)>;
 	class Window
 	{
 	public :
@@ -20,13 +22,14 @@ namespace CE
 		~Window();
 		static Window* GetInstance() { return m_Instance; }
 		bool Init();
-		bool broadcast();
+		void  broadcast();
 		static Window* Create();
 		void ClearResources();
 		void DrawTextToHWND(RECT& rc);
 		void BeginDraw() { if (m_rendertarget) { m_rendertarget->BeginDraw(); } }
 		HRESULT EndDraw() { if (m_rendertarget) { HRESULT hr = m_rendertarget->EndDraw(); return hr; } }
 		void* GetWindowHandle() { return m_hwnd; }
+		void SetBufferandCount(Buffer &buffer, ui32 pos) { m_buffer = buffer; Pos_count = pos; }
 	public :
 		static inline Window* m_Instance;
 		static inline bool m_Running;
@@ -39,7 +42,9 @@ namespace CE
 		IDWriteTextFormat* m_text_format;
 		ID2D1SolidColorBrush* m_textBrush;
 		
-	private :
+	public :
+		static inline Buffer m_buffer;
+		static inline ui32 Pos_count;
 		//std::unique_ptr<TextRender> m_TextRender;
 	private :
 		friend class TextRender;

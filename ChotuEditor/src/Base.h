@@ -13,3 +13,5 @@
 #else
 	#error Platform Not Defined!
 #endif
+
+#define BIND_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(); }

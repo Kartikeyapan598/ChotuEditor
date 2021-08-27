@@ -1,5 +1,7 @@
 #include "Chotupch.h"
 #include "Window.h"
+#include "KeyCode.h"
+#include "TextRender.h"
 
 #include <tchar.h>
 #include <commctrl.h>
@@ -24,26 +26,21 @@ namespace CE
 
 	Window* Window::Create()
 	{
-		if (Window::m_Instance)
-		{
-			return Window::m_Instance;
-		}
-
-		else
-		{
-			return new Window();
-		}
+		return new Window();
 	}
 	Window::Window()
 	{
-		m_Instance = this;
-		HRESULT hr;
-		
-		hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dfactory);
-		hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&m_writeFactory);
-		hr = m_writeFactory->CreateTextFormat(L"Consolas", 0, DWRITE_FONT_WEIGHT_REGULAR, 
-			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
-		Init();
+		if (!m_Instance)
+		{
+			m_Instance = this;
+			HRESULT hr;
+
+			hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dfactory);
+			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&m_writeFactory);
+			hr = m_writeFactory->CreateTextFormat(L"Consolas", 0, DWRITE_FONT_WEIGHT_REGULAR,
+				DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
+			Init();
+		}
 	}
 
 	Window::~Window() 
@@ -79,33 +76,34 @@ namespace CE
 		AppendMenuW(m_AboutMenu, MF_STRING, IDM_FILE_USAGE, _T("&Usage"));
 
 		AppendMenuW(m_ViewMenu, MF_STRING, IDM_FILE_VIEW, _T("&View"));
-		AppendMenuW(m_ViewMenu, MF_STRING, IDM_FILE_FONT, _T("&Font"));
+		//AppendMenuW(m_ViewMenu, MF_STRING, IDM_FILE_FONT, _T("&Font"));
 
 		AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)m_fileMenu, _T("&File"));
-		AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)m_TabMenu, _T("&Tab"));
+		AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)IDM_FILE_TAB, _T("&Tab"));
+		//AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)m_TabMenu, _T("&Tab"));
 		AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)m_ViewMenu, _T("&View"));
 		AppendMenuW(m_MainMenubar, MF_POPUP, (UINT_PTR)m_AboutMenu, _T("&About"));
 		
 		SetMenu(hwnd, m_MainMenubar);
 	}
 
-	void TabControl(HWND hwnd)
-	{
-		TCITEMW tie;
-		wchar_t text[4];
-		LRESULT count, id;
-		INITCOMMONCONTROLSEX icex;
-
-		//RECT rc;
-		//GetClientRect(hwnd, &rc);
-
-		icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
-		icex.dwICC = ICC_TAB_CLASSES;
-		InitCommonControlsEx(&icex);
-
-		Window::hTab = CreateWindowW(WC_TABCONTROLW, NULL, WS_CHILD | WS_VISIBLE,
-				0, 0, 400, 400, hwnd, (HMENU)ID_TABCTRL, NULL, NULL);
-	}
+	//void TabControl(HWND hwnd)
+	//{
+	//	TCITEMW tie;
+	//	wchar_t text[4];
+	//	LRESULT count, id;
+	//	INITCOMMONCONTROLSEX icex;
+	//
+	//	//RECT rc;
+	//	//GetClientRect(hwnd, &rc);
+	//
+	//	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	//	icex.dwICC = ICC_TAB_CLASSES;
+	//	InitCommonControlsEx(&icex);
+	//
+	//	Window::hTab = CreateWindowW(WC_TABCONTROLW, NULL, WS_CHILD | WS_VISIBLE,
+	//			0, 0, 400, 400, hwnd, (HMENU)ID_TABCTRL, NULL, NULL);
+	//}
 
 	void OpenFileWindow(HWND hwnd)
 	{
@@ -129,7 +127,6 @@ namespace CE
 	{
 		switch (msg)
 		{
-			HRESULT hr;
 		case WM_LBUTTONDOWN:
 			MessageBox(hwnd, _T("Child Proc Message Handler!"), _T("ChildProc"), MB_OKCANCEL);
 			break;
@@ -155,7 +152,9 @@ namespace CE
 				OpenFileWindow(hwnd);
 				break;
 			case IDM_FILE_TAB :
-				TabControl(hwnd);
+				//TabControl(hwnd);
+				CE::RenderBuffer(&Window::m_buffer);
+				OutputDebugStringA("\n----------------------------------\n");
 				MessageBeep(MB_ICONINFORMATION);
 				break;
 			case IDM_FILE_SAVE :
@@ -189,21 +188,23 @@ namespace CE
 
 		m_rendertarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 		D2D1_RECT_F layoutRect;
-		layoutRect.left = (FLOAT)rc.left;
-		layoutRect.right = (FLOAT)rc.right;
-		layoutRect.top = (FLOAT)rc.top;
-		layoutRect.bottom = (FLOAT)rc.bottom;
-		m_rendertarget->DrawText(text, wcslen(text), m_text_format, layoutRect, m_textBrush);
+		layoutRect.left = rc.left;
+		layoutRect.right = rc.right;
+		layoutRect.top = rc.top;
+		layoutRect.bottom = rc.bottom;
+
+		const WCHAR* ch = CharToWchar(m_buffer.data);
+		
+		m_rendertarget->DrawText(ch, wcslen(ch), m_text_format, layoutRect, m_textBrush);
 
 		hr = EndDraw();
-
 	}
 
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		RECT rc;
 		GetClientRect(hwnd, &rc);
-		D2D1_SIZE_U sz = { rc.right - rc.left, rc.bottom - rc.top };
+		D2D1_SIZE_U sz = { (UINT32)(rc.right - rc.left), (UINT32)(rc.bottom - rc.top) };
 
 		HRESULT hr;
 		switch (msg)
@@ -233,10 +234,11 @@ namespace CE
 			break;
 		}
 		case WM_PAINT :
+		case WM_DISPLAYCHANGE :
 		{
 			Window* m_Window = Window::GetInstance();
 			m_Window->DrawTextToHWND(rc);
-			return DefWindowProc(hwnd, msg, wparam, lparam);
+			break;
 		}
 		case WM_QUIT:
 		case WM_DESTROY :
@@ -245,6 +247,31 @@ namespace CE
 			PostQuitMessage(0);
 			Window::m_Running = false;
 			break;
+		case WM_CHAR:
+		{
+			char cchar = (static_cast<KeyCode>(wparam));
+			if (cchar != CE::Key::Enter && cchar != CE::Key::Backspace)
+			{
+				std::cout << "Key Pressed! " << cchar << "\n";
+				Window::Pos_count = CE::InsertCharacter(&Window::m_buffer, Window::Pos_count, cchar);
+				//data->EventCall(event);
+				break;
+			}
+			else if (cchar == CE::Key::Enter)
+			{
+				std::cout << "Enter Pressed!\n";
+				Window::Pos_count = CE::InsertCharacter(&Window::m_buffer, Window::Pos_count, '\n');
+				break;
+			}
+			else if (cchar == CE::Key::Backspace)
+			{
+				std::cout << "BackSpace Pressed!\n";
+				Window::Pos_count = RemoveCharacter(&Window::m_buffer, Window::Pos_count);
+				// Reduce m_buffer->end_pos by 1 or however times backspace is pressed!
+				break;
+			}
+			break;
+		}
 		default :
 			return DefWindowProc(hwnd, msg, wparam, lparam);
 		}
@@ -265,8 +292,8 @@ namespace CE
 		wc.cbWndExtra = NULL;
 		wc.hbrBackground = CreateSolidBrush(RGB(55, 55, 55));	//(HBRUSH)GetStockObject(DKGRAY_BRUSH);;  COLOR_ACTIVEBORDER
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);				//(HICON)LoadImageW(nullptr, L"res\\paddle.ico", IMAGE_ICON, 64, 64, LR_LOADFROMFILE);
-		wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+		wc.hIcon = LoadIcon(NULL, IDI_EXCLAMATION);				//(HICON)LoadImageW(nullptr, L"res\\paddle.ico", IMAGE_ICON, 64, 64, LR_LOADFROMFILE);
+		wc.hIconSm = LoadIcon(NULL, IDI_EXCLAMATION);
 		wc.hInstance = NULL;
 		wc.lpszClassName = _T("Cndr");
 		wc.lpszMenuName = _T("");
@@ -292,26 +319,14 @@ namespace CE
 		return true;
 	}
 
-	bool Window::broadcast()
+	void Window::broadcast()
 	{
-		MSG msg = { 0 };
-
-		BOOL bRet = 1;
+		MSG msg;
 		std::cout << "Flag in Broadcast" << "\n";
-		while ((bRet = GetMessage(&msg, 0, 0, 0)) != 0)
+		while (GetMessage(&msg, 0, 0, 0) != 0)
 		{
-			if (bRet == -1)
-			{
-				MessageBox(0, _T("GetMessage FAILED"), _T("Error"), MB_OK);
-				break;
-			}
-			else
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
-
-		return (int)msg.wParam;
 	}
 }
