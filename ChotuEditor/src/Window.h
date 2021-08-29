@@ -30,6 +30,9 @@ namespace CE
 		HRESULT EndDraw() { if (m_rendertarget) { HRESULT hr = m_rendertarget->EndDraw(); return hr; } }
 		void* GetWindowHandle() { return m_hwnd; }
 		void SetBufferandCount(Buffer &buffer, ui32 pos) { m_buffer = buffer; Pos_count = pos; }
+
+		static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
 	public :
 		static inline Window* m_Instance;
 		static inline bool m_Running;

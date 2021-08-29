@@ -13,7 +13,6 @@ namespace CE
 {
 	static HWND openMenu;
 	LRESULT CALLBACK ChildProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-	LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	void Window::ClearResources()
 	{
@@ -163,7 +162,7 @@ namespace CE
 				break;
 			case IDM_FILE_QUIT :
 				val = MessageBox(hwnd, _T("Do you Want To Quit!"), _T("Quit"), MB_OKCANCEL);
-				if(val == IDOK){ return WindowProc(hwnd, WM_DESTROY, wparam, lparam); }
+				if(val == IDOK){ return Window::WindowProc(hwnd, WM_DESTROY, wparam, lparam); }
 				break;
 			case IDM_FILE_ABOUT :
 				MessageBox(hwnd, _T("All Rights Reserved To Creator, Kidding! \nUse as you see Fit"), _T("About"), MB_OK | MB_ICONINFORMATION);
@@ -200,7 +199,7 @@ namespace CE
 		hr = EndDraw();
 	}
 
-	LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+	LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		RECT rc;
 		GetClientRect(hwnd, &rc);

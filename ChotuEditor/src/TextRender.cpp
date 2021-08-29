@@ -14,17 +14,7 @@ namespace CE
 	{
 		int length = MultiByteToWideChar(CP_ACP, 0, cchar, -1, NULL, 0);
 		const WCHAR* wchar = new WCHAR[length];
-
 		MultiByteToWideChar(CP_ACP, 0, cchar, -1, (LPWSTR)wchar, length);
-		
-		/*
-		size_t new_size = strlen(cchar) + 1;
-		wchar_t* wchar = new wchar_t(new_size);
-
-		size_t convertedChars = 0;
-		mbstowcs_s(&convertedChars, wchar, new_size, cchar, _TRUNCATE);
-
-		*/
 		return wchar;
 	}
 
@@ -102,6 +92,8 @@ namespace CE
 			//std::cout << "Position" << position << "\n";
 			buffer->data[buffer->gap_start_pos - 1] = '\0';
 			buffer->gap_start_pos -= 1;
+			buffer->gap_end_pos -= 1;
+			buffer->end_pos -= 1;
 			return position - 1;
 		}
 	}

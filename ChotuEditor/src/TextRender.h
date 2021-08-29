@@ -13,9 +13,6 @@ namespace CE
 		ui32 gap_start_pos;
 		ui32 gap_end_pos;
 		ui32 end_pos;
-
-		Buffer() {}
-		~Buffer() {}
 	};
 
 	ui32 CopyLineBuffer(char* dest, Buffer* buffer, int char_count);
