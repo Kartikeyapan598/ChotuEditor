@@ -86,7 +86,11 @@ namespace CE
 
 	ui32 RemoveCharacter(Buffer* buffer, ui32 position)
 	{
-		if (buffer->data[buffer->gap_start_pos - 1] != '\0')
+		if (buffer->gap_start_pos == 0)
+		{
+			return position;
+		}
+		else if (buffer->data[buffer->gap_start_pos - 1] != '\0')
 		{	
 			//NULL Error at 0th position , solve;
 			//std::cout << "Position" << position << "\n";
@@ -94,6 +98,10 @@ namespace CE
 			buffer->gap_start_pos -= 1;
 			buffer->gap_end_pos -= 1;
 			buffer->end_pos -= 1;
+			return position - 1;
+		}
+		else
+		{
 			return position - 1;
 		}
 	}

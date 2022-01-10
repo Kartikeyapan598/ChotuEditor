@@ -1,6 +1,6 @@
 #include "Chotupch.h"
-#include "Application.h"
 #include "TextRender.h"
+#include "Application.h"
 
 namespace CE
 {

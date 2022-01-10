@@ -14,6 +14,14 @@ static WCHAR text[] = L"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 
 namespace CE
 {
+	struct Type_Caret
+	{
+		DWRITE_HIT_TEST_METRICS m_hitMatrices;
+		float caret_X;
+		float caret_Y;
+		bool isTrailinghit = false;
+	};
+
 	using CallBack = std::function<void(Event& e)>;
 	class Window
 	{
@@ -26,6 +34,7 @@ namespace CE
 		static Window* Create();
 		void ClearResources();
 		void DrawTextToHWND(RECT& rc);
+		void ChangeFormat();
 		void BeginDraw() { if (m_rendertarget) { m_rendertarget->BeginDraw(); } }
 		HRESULT EndDraw() { if (m_rendertarget) { HRESULT hr = m_rendertarget->EndDraw(); return hr; } }
 		void* GetWindowHandle() { return m_hwnd; }
@@ -44,10 +53,13 @@ namespace CE
 		ID2D1HwndRenderTarget* m_rendertarget;
 		IDWriteTextFormat* m_text_format;
 		ID2D1SolidColorBrush* m_textBrush;
+		//IDWriteTextLayout* m_textlayout;
 		
 	public :
 		static inline Buffer m_buffer;
 		static inline ui32 Pos_count;
+		static inline Type_Caret m_caret;	// type Caret
+		// https://youtu.be/cgd_qGekPdI?t=10929 careting the editor
 		//std::unique_ptr<TextRender> m_TextRender;
 	private :
 		friend class TextRender;

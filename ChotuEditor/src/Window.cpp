@@ -16,11 +16,6 @@ namespace CE
 
 	void Window::ClearResources()
 	{
-		RELEASE(m_writeFactory)
-		RELEASE(m_d2dfactory)
-		RELEASE(m_rendertarget)
-		RELEASE(m_text_format)
-		RELEASE(m_textBrush)
 	}
 
 	Window* Window::Create()
@@ -36,15 +31,20 @@ namespace CE
 
 			hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dfactory);
 			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&m_writeFactory);
-			hr = m_writeFactory->CreateTextFormat(L"Consolas", 0, DWRITE_FONT_WEIGHT_REGULAR,
+			hr = m_writeFactory->CreateTextFormat(L"Arial", 0, DWRITE_FONT_WEIGHT_REGULAR,
 				DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
+			//m_textlayout->HitTestTextPosition();
 			Init();
 		}
 	}
 
 	Window::~Window() 
 	{
-		ClearResources();
+		RELEASE(m_writeFactory)
+		RELEASE(m_d2dfactory)
+		RELEASE(m_rendertarget)
+		RELEASE(m_text_format)
+		RELEASE(m_textBrush)
 	}
 
 
@@ -219,11 +219,11 @@ namespace CE
 		{
 			Window* m_Window = Window::GetInstance();
 
-			if (m_Window->m_rendertarget)
+			if (!m_Window->m_rendertarget)
 			{
 				m_Window->m_rendertarget->Release();
 			}
-			if (m_Window->m_textBrush)
+			if (!m_Window->m_textBrush)
 			{
 				m_Window->m_textBrush->Release();
 			}
@@ -269,12 +269,29 @@ namespace CE
 				// Reduce m_buffer->end_pos by 1 or however times backspace is pressed!
 				break;
 			}
+			else if (cchar == CE::Key::Tab)
+			{
+				std::cout << "Tab Pressed\n";
+				Window::Pos_count = RemoveCharacter(&Window::m_buffer, Window::Pos_count);
+				break;
+			}
 			break;
 		}
 		default :
 			return DefWindowProc(hwnd, msg, wparam, lparam);
 		}
 		return 0;
+	}
+
+	void Window::ChangeFormat()
+	{
+		HRESULT hr;
+		hr = m_writeFactory->CreateTextFormat(L"Consolas", 0, DWRITE_FONT_WEIGHT_REGULAR,
+			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
+		if (hr != S_OK)
+		{
+			std::cout << "ChangeFormat Didnt Work Properly\n";
+		}
 	}
 
 	bool Window::Init()

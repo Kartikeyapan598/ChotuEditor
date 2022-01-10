@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Windows.h>
+#include <wrl.h>
 #include <d2d1.h>
+#include <iostream>
+#include <crtdbg.h>
+#include <Windows.h>
 #include <dwrite_3.h>
 #include <DirectXColors.h>
-#include <wrl.h>
-
-#include <iostream>
 
 #pragma comment(lib,"dwrite.lib")
 #pragma comment(lib,"d2d1.lib")
