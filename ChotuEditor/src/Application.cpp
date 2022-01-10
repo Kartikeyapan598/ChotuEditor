@@ -19,17 +19,12 @@ namespace CE
 	{
 		CE::Buffer buffer;
 		CE::InitBuffer(&buffer, 4);
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, 'a');
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, 'b');
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, '\n');
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, 'x');
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, '\n');
-		buffer_pos_count = CE::InsertCharacter(&buffer, buffer_pos_count, 'H');
 		
 		m_Window->SetBufferandCount(buffer, buffer_pos_count);
 		
 		CE::RenderBuffer(&buffer);
 		OutputDebugStringA("\n");
+
 		while (m_Window->m_Running)
 		{
 			m_Window->broadcast();
