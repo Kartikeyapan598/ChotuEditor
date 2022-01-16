@@ -28,11 +28,23 @@ namespace CE
 		return 0;
 	}
 
+	void FillBuffer(Buffer* buffer, char val)
+	{
+		int emp = buffer->gap_start_pos;
+		while (emp != buffer->gap_end_pos)
+		{
+			buffer->data[emp++] = '\0';
+		}
+	}
+
 	void InitBuffer(Buffer* buffer, int initial_gap_size)
 	{
 		buffer->data = (char*)HeapAlloc(GetProcessHeap(), 0, initial_gap_size);			// Specific for windows
 		//buffer->data = (char*)malloc(initial_gap_size);
 		//buffer->cursor_pos = 0;
+
+		memset(buffer->data, '\0', initial_gap_size);
+
 		buffer->gap_start_pos = 0;
 		buffer->gap_end_pos = initial_gap_size;
 		buffer->end_pos = initial_gap_size;
@@ -49,6 +61,9 @@ namespace CE
 			buffer->gap_end_pos -= delta;
 			MoveMemory(buffer->data + buffer->gap_end_pos, buffer->data + buffer->gap_start_pos, delta);	// memmove((Destination),(Source),(Length)) // memmove((buff->data + buff->gap_end_pos - delta),(buff->data + position),(delta))
 			//memmove((buffer->data + buffer->gap_start_pos - delta), (buffer->data + position), (delta));	//	Portable Code
+
+			FillBuffer(buffer, '\0');
+
 		}
 		else if (position > buffer->gap_start_pos)
 		{
@@ -57,6 +72,9 @@ namespace CE
 			//memmove((buffer->data + buffer->gap_start_pos), (buffer->data + position), (delta));		//	Portable Code
 			buffer->gap_start_pos += delta;
 			buffer->gap_end_pos += delta;
+
+			FillBuffer(buffer, '\0');
+
 		}
 	}
 
@@ -69,8 +87,11 @@ namespace CE
 			ui32 new_end_pos = 2 * buffer->end_pos;
 			buffer->data = (char*)HeapReAlloc(GetProcessHeap(), 0, buffer->data, new_end_pos);		// Specific for windows
 			//buffer->data = (char*)realloc(buffer->data, new_end_pos);
+
 			buffer->gap_end_pos = new_end_pos;
 			buffer->end_pos = new_end_pos;
+
+			FillBuffer(buffer, '\0');
 		}
 	}
 

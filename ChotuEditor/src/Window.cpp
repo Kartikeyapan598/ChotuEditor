@@ -1,4 +1,5 @@
 #include "Chotupch.h"
+
 #include "Window.h"
 #include "KeyCode.h"
 #include "TextRender.h"
@@ -31,14 +32,15 @@ namespace CE
 
 			hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dfactory);
 			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&m_writeFactory);
-			hr = m_writeFactory->CreateTextFormat(L"Arial", 0, DWRITE_FONT_WEIGHT_REGULAR,
-				DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
+			
+			ChangeFormat(m_fontinfo);
+			
 			//m_textlayout->HitTestTextPosition();
 			Init();
 		}
 	}
 
-	Window::~Window() 
+	Window::~Window()
 	{
 		RELEASE(m_writeFactory)
 		RELEASE(m_d2dfactory)
@@ -157,21 +159,29 @@ namespace CE
 				MessageBeep(MB_ICONINFORMATION);
 				break;
 			case IDM_FILE_SAVE :
+			{
+				Window* window = Window::GetInstance();
+				window->unsaved = true;
+				window->m_data.m_title.pop_back();
+				std::string title = window->m_data.m_title;
+				window->SetTitle(title);
+				break;
+			}
 			case IDM_FILE_SAVE_AS :
 				MessageBeep(MB_ICONINFORMATION);
 				break;
 			case IDM_FILE_QUIT :
-				val = MessageBox(hwnd, _T("Do you Want To Quit!"), _T("Quit"), MB_OKCANCEL);
+				val = MessageBox(NULL, _T("Do you Want To Quit!"), _T("Quit"), MB_OKCANCEL);
 				if(val == IDOK){ return Window::WindowProc(hwnd, WM_DESTROY, wparam, lparam); }
 				break;
 			case IDM_FILE_ABOUT :
-				MessageBox(hwnd, _T("All Rights Reserved To Creator, Kidding! \nUse as you see Fit"), _T("About"), MB_OK | MB_ICONINFORMATION);
+				MessageBox(NULL, _T("All Rights Reserved To Creator, Kidding! \nUse as you see Fit"), _T("About"), MB_OK | MB_ICONINFORMATION);
 				break;
 			case IDM_FILE_USAGE :
-				MessageBox(hwnd, _T("Given Piece of Software can Malfunction !\n\nThus the Creator is to hold no responsibility under Malfunction !"), _T("User Desgression Required !"), MB_ICONINFORMATION);
+				MessageBox(NULL, _T("Given Piece of Software can Malfunction !\n\nThus the Creator is to hold no responsibility under Malfunction !"), _T("User Desgression Required !"), MB_ICONINFORMATION);
 				break;
 			case IDM_APP_INFO :
-				MessageBox(hwnd, _T("Chotu Editor"), _T("Cndr Engine"), MB_OKCANCEL);
+				MessageBox(NULL, _T("Chotu Editor"), _T("Cndr Engine"), MB_OKCANCEL);
 				break;
 			default :
 				return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -242,12 +252,24 @@ namespace CE
 		case WM_QUIT:
 		case WM_DESTROY :
 		case VK_F4 :
-			DestroyWindow(hwnd); 
+		{
+			DestroyWindow(hwnd);
 			PostQuitMessage(0);
 			Window::m_Running = false;
 			break;
+		}
 		case WM_CHAR:
 		{
+			Window* window = Window::GetInstance();
+			if (window->unsaved == true)
+			{
+				window->unsaved = false;
+				std::string title = window->m_data.m_title;
+				title += '*';
+
+				window->SetTitle(title);
+			}
+
 			char cchar = (static_cast<KeyCode>(wparam));
 			if (cchar != CE::Key::Enter && cchar != CE::Key::Backspace)
 			{
@@ -283,15 +305,39 @@ namespace CE
 		return 0;
 	}
 
-	void Window::ChangeFormat()
+	void Window::ChangeFormat(const WCHAR* font, float fontsize, const wchar_t* lang)
 	{
 		HRESULT hr;
-		hr = m_writeFactory->CreateTextFormat(L"Consolas", 0, DWRITE_FONT_WEIGHT_REGULAR,
-			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 36.0f, L"en-us", &m_text_format);
+		hr = m_writeFactory->CreateTextFormat(font, 0, DWRITE_FONT_WEIGHT_REGULAR,
+			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontsize, lang, &m_text_format);
 		if (hr != S_OK)
 		{
 			std::cout << "ChangeFormat Didnt Work Properly\n";
 		}
+	}
+
+	void Window::ChangeFormat(const Font font)
+	{
+		HRESULT hr;//L"Consolas",36.0f, L"en-us"
+		hr = m_writeFactory->CreateTextFormat(font.m_font, 0, DWRITE_FONT_WEIGHT_REGULAR,
+			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, font.m_fontsize, font.m_lang, &m_text_format);
+		if (hr != S_OK)
+		{
+			std::cout << "ChangeFormat Didnt Work Properly\n";
+		}
+	}
+
+	void Window::SetTitle(const std::string& title)
+	{
+		m_data.m_title = title;
+
+#if defined UNICODE
+		std::wstring wTitle = std::wstring(m_data.m_title.begin(), m_data.m_title.end());
+		LPCWSTR Title = wTitle.c_str();
+		SetWindowText(m_hwnd, wTitle.c_str());
+#elif defined ANSI
+		SetWindowText(m_hwnd, _T(title.c_str()));
+#endif
 	}
 
 	bool Window::Init()
@@ -321,7 +367,13 @@ namespace CE
 			return false;
 		}
 
-		m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, wc.lpszClassName, _T("Cndr Engine"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
+#ifdef UNICODE
+		std::wstring wTitle = std::wstring(m_data.m_title.begin(), m_data.m_title.end());
+		LPCWSTR Title = wTitle.c_str();
+#else
+		auto Title = m_data.m_title;
+#endif 
+		m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, wc.lpszClassName, Title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, m_data.m_width, m_data.m_height,
 			NULL, NULL, NULL, NULL);
 
 		if (!m_hwnd)

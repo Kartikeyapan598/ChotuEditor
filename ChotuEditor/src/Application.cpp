@@ -18,7 +18,7 @@ namespace CE
 	void Application::Run()
 	{
 		CE::Buffer buffer;
-		CE::InitBuffer(&buffer, 4);
+		CE::InitBuffer(&buffer, 32);
 		
 		m_Window->SetBufferandCount(buffer, buffer_pos_count);
 		
