@@ -21,7 +21,6 @@ namespace CE
 		HWND m_Window;
 		std::filesystem::path this_file_savepath;
 		bool is_saved;
-
 	};
 
 }

@@ -9,11 +9,11 @@ namespace CE
 	Application::Application()
 	{
 		m_ApplicationInstance = this;
-		m_Window = std::unique_ptr<Window>((Window*)Window::Create());
+		m_Window = std::unique_ptr<Window>((Window*)Window::GetInstance());
 	}
+
 	Application::~Application()
-	{
-	}
+	{}
 
 	void Application::Run()
 	{

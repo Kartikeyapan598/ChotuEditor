@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 #include <stdlib.h>
-#include <atlstr.h>
-#include <atlbase.h>
+//#include <atlstr.h>
+//#include <atlbase.h>
 #include <comutil.h>
 
 namespace CE
@@ -13,7 +13,7 @@ namespace CE
 	const WCHAR* CharToWchar(char* cchar)
 	{
 		int length = MultiByteToWideChar(CP_ACP, 0, cchar, -1, NULL, 0);
-		const WCHAR* wchar = new WCHAR[length];
+		WCHAR* wchar = new WCHAR[length];
 		MultiByteToWideChar(CP_ACP, 0, cchar, -1, (LPWSTR)wchar, length);
 		return wchar;
 	}
